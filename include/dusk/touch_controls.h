@@ -12,6 +12,7 @@ void apply_post_clamp_stick_state(PADStatus& status, u32 port = PAD_CHAN0) noexc
 void draw() noexcept;
 void reset() noexcept;
 bool enabled_for_port(u32 port) noexcept;
+bool enabled_for_port_cached(u32 port) noexcept;
 void set_enabled_for_port(u32 port, bool enabled) noexcept;
 int stick_sensitivity_percent() noexcept;
 void set_stick_sensitivity_percent(int value) noexcept;

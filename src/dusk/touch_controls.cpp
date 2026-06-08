@@ -130,12 +130,16 @@ void load_settings() noexcept {
         return;
     }
 
-    sSettingsLoaded = true;
     apply_default_settings();
 
     const auto path = settings_path();
     std::error_code ec;
-    if (path.empty() || !std::filesystem::exists(path, ec)) {
+    if (path.empty()) {
+        return;
+    }
+
+    sSettingsLoaded = true;
+    if (!std::filesystem::exists(path, ec)) {
         if (defaults_enable_touch_controls()) {
             save_settings();
         }
@@ -420,14 +424,14 @@ void draw_shoulder(ImDrawList* drawList, ImVec2 min, ImVec2 max, const char* lab
 }  // namespace
 
 void handle_event(const SDL_Event& event) noexcept {
-    if (!enabled_for_port(PAD_CHAN0)) {
+    if (!dusk::IsGameLaunched || dusk::ui::any_document_visible() ||
+        ImGui::GetCurrentContext() == nullptr)
+    {
         reset();
         return;
     }
 
-    if (!dusk::IsGameLaunched || dusk::ui::any_document_visible() ||
-        ImGui::GetCurrentContext() == nullptr)
-    {
+    if (!enabled_for_port(PAD_CHAN0)) {
         reset();
         return;
     }
@@ -472,11 +476,11 @@ void handle_event(const SDL_Event& event) noexcept {
 }
 
 void apply_pad_state(PADStatus& status, u32 port) noexcept {
-    if (!enabled_for_port(port)) {
+    if (!dusk::IsGameLaunched || ImGui::GetCurrentContext() == nullptr) {
         return;
     }
 
-    if (!dusk::IsGameLaunched || ImGui::GetCurrentContext() == nullptr) {
+    if (!enabled_for_port(port)) {
         return;
     }
 
@@ -517,11 +521,11 @@ void apply_pad_state(PADStatus& status, u32 port) noexcept {
 }
 
 void apply_post_clamp_stick_state(PADStatus& status, u32 port) noexcept {
-    if (!enabled_for_port(port)) {
+    if (!dusk::IsGameLaunched || ImGui::GetCurrentContext() == nullptr || status.err != PAD_ERR_NONE) {
         return;
     }
 
-    if (!dusk::IsGameLaunched || ImGui::GetCurrentContext() == nullptr || status.err != PAD_ERR_NONE) {
+    if (!enabled_for_port(port)) {
         return;
     }
 
@@ -539,13 +543,13 @@ void apply_post_clamp_stick_state(PADStatus& status, u32 port) noexcept {
 }
 
 void draw() noexcept {
-    if (!enabled_for_port(PAD_CHAN0)) {
-        return;
-    }
-
     if (!dusk::IsGameLaunched || dusk::ui::any_document_visible() ||
         ImGui::GetCurrentContext() == nullptr)
     {
+        return;
+    }
+
+    if (!enabled_for_port(PAD_CHAN0)) {
         return;
     }
 
@@ -575,6 +579,16 @@ bool enabled_for_port(u32 port) noexcept {
         return false;
     }
     load_settings();
+    return sEnabledPorts[port];
+}
+
+bool enabled_for_port_cached(u32 port) noexcept {
+    if (port >= sEnabledPorts.size()) {
+        return false;
+    }
+    if (!sSettingsLoaded) {
+        return port == PAD_CHAN0 && defaults_enable_touch_controls();
+    }
     return sEnabledPorts[port];
 }
 

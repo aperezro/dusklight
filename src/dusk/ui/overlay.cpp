@@ -146,7 +146,7 @@ Rml::String back_button_name() {
 }
 
 bool touch_controller_active() noexcept {
-    return dusk::touch_controls::enabled_for_port(PAD_CHAN0);
+    return dusk::touch_controls::enabled_for_port_cached(PAD_CHAN0);
 }
 
 const char* menu_notification_prefix() noexcept {
